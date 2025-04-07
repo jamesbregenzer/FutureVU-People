@@ -42,6 +42,11 @@ function create_vu_people() {
     register_post_type( 'person', $args);
 }
 
+add_filter('timber/locations', function($paths) {
+    $paths[] = plugin_dir_path(__FILE__) . 'templates';
+    return $paths;
+});
+
 //force using template
 add_filter('template_include', 'include_vu_person_template_function', 1);
 
