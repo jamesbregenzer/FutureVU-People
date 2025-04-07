@@ -1,16 +1,47 @@
 <?php
-/*
- * Template Name: VU Person Page
- */
+// Exit if accessed directly
+defined('ABSPATH') || exit;
 
-get_header(); ?>
+use Timber\Timber;
+use Timber\Site;
+
+if (!class_exists('Timber')) {
+    echo 'Timber not loaded';
+    exit;
+}
+
+$context = Timber::context();
+$context['theme_mods'] = get_theme_mods();
+$context['site'] = new Site();
+$context['footer'] = 'default';
+$context['bodyClass'] = 'custom-plugin-page';
+$context['vu_close_head_tag_section'] = '';
+$context['vu_close_body_tag_section'] = '';
+
+// Start output buffer
+ob_start();
+?>
+<style type="text/css">
+    .container {
+        max-width: 85rem;
+        margin: auto;
+        padding: 2rem;
+    }
+    .pagetitle{
+        margin-top: 30px;
+        font-size: 30px;
+    }
+</style>
 
     <div class="panel panel-default col-sm-9">
-        <div class="row">
+        <div class="container">
             <article class="primary-content col-sm-12">
                 <div class="panel-body">
 
                     <?php if (have_posts()) : while (have_posts()) : the_post(); ?>
+                        <?php
+                            $shortcode_string  = "";
+                        ?>
                         <?php edit_post_link( __( 'Edit', 'vanderbilt_brand' ), '<span class="edit-link">', '</span>' ); ?>
 
                         <!-- information section 12-->
@@ -33,12 +64,16 @@ get_header(); ?>
                                             $have_office = 0;
 
                                             if(get_sub_field('title__position')) {
-                                                $shortcode_string .= get_sub_field('title__position');
+                                                if($shortcode_string) {
+                                                    $shortcode_string  .= get_sub_field('title__position');
+                                                }
                                                 $have_title = 1;
                                             }
 
                                             if($have_title && get_sub_field('department__center__office')){
-                                                $shortcode_string .= ', ' . get_sub_field('department__center__office') . '<br />';
+                                                if($shortcode_string ){
+                                                    $shortcode_string .= ', ' . get_sub_field('department__center__office') . '<br />';
+                                                }
                                                 $have_office = 1;
                                             } else if (get_sub_field('department__center__office')) {
                                                 $shortcode_string .= get_sub_field('department__center__office') . '<br />';
@@ -51,8 +86,10 @@ get_header(); ?>
                                         ?>
 
 
-                                            <?php echo $shortcode_string;
-                                                    $shortcode_string = '';
+                                            <?php 
+                                                if($shortcode_string )
+                                                    echo $shortcode_string;
+                                                $shortcode_string = '';
                                             ?>
 <!--                                            --><?php //the_sub_field('title__position'); ?><!--, --><?php //the_sub_field('department__center__office'); ?>
                                         <?php endwhile; ?>
@@ -199,7 +236,9 @@ get_header(); ?>
         </div>
     </div>
 
-<?php wp_reset_query(); ?>
+<?php wp_reset_query();
+// Store output buffer
+$context['plugin_content'] = ob_get_clean();
 
-<?php get_sidebar(); ?>
-<?php get_footer(); ?>
+// Render with your Twig template
+Timber::render('plugin-page.twig', $context);
