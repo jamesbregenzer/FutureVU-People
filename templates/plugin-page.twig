@@ -1,0 +1,9 @@
+{% extends "layouts/base.twig" %}
+
+{% block content %}
+ {# Optional: include nav with dark theme logic #}
+  {% include "@components/nav.twig" with { darkTheme: true } %}
+
+  {# Optional: include topper - depends on if you want it #}
+  {{ plugin_content | raw }}
+{% endblock %}
