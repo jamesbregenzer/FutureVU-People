@@ -19,17 +19,23 @@ $context['vu_close_head_tag_section'] = '';
 $context['vu_close_body_tag_section'] = '';
 
 $paged = get_query_var('paged') ? get_query_var('paged') : 1;
+$tag_filter = isset($_GET['person_tag']) ? sanitize_text_field($_GET['person_tag']) : null;
+
 
 $args = array(
     'post_type' => 'person',
-    'depth' => 1,
     'posts_per_page' => 12,
     'paged' => $paged,
-    'post_status' => array('publish'),
+    'post_status' => 'publish',
     'meta_key' => 'last_family_name',
     'orderby' => 'meta_value',
     'order' => 'ASC',
 );
+
+if ($tag_filter) {
+    $args['tag'] = $tag_filter;
+}
+
 
 $wp_query = new WP_Query($args);
 
@@ -38,7 +44,7 @@ ob_start();
 ?>
 <style type="text/css">
     .container {
-        max-width: 85rem;
+        max-width: 75%;
         margin: auto;
         padding: 2rem;
     }
@@ -92,6 +98,9 @@ ob_start();
         .people-swatch {
             flex: 1 1 calc(33.333% - 20px);
         }
+        .container{
+            max-width: 90%!important;
+        }
     }
 
     @media (max-width: 600px) {
@@ -126,6 +135,47 @@ ob_start();
         text-transform: capitalize;
         margin-bottom: 20px;
     }
+    .people-flex-box{
+        display: flex;
+        gap: 30px;
+    }
+    .sidebar{
+        min-width: 240px;
+        max-width: 250px;
+    }
+    .tag-filter-list{
+        display: flex;
+       /* margin: 0;
+        padding: 0;
+       */ gap: 10px;
+        flex-direction: column;
+    }
+    .list-title{
+        margin-bottom: 90px;
+        display: block;
+        font-size: 50px;
+        text-align: center;
+    }
+    .department-title{
+        margin-bottom: 20px;
+    }
+    .tag-filter-list {
+        list-style: none;
+        padding: 0;
+        margin: 0 0 30px 0;
+    }
+    .tag-filter-list li {
+        margin-bottom: 8px;
+    }
+    .tag-filter-list li a {
+        text-decoration: none;
+        color: #1C1C1C;
+    }
+    .tag-filter-list li.active-tag a {
+        font-weight: bold;
+        color: #946e24;
+    }
+
 </style>
 
 <div class="container">
@@ -134,6 +184,31 @@ ob_start();
             <?php $blog_details = get_blog_details(); ?>
             <h2 class="list-title"><?php echo esc_html($blog_details->blogname); ?> Members</h2>
 
+            <div class="people-flex-box">
+                <div class="sidebar">
+                    <h2 class="department-title">Department</h2>
+                    <?php
+                    $tags = get_tags(array(
+                        'hide_empty' => true,
+                        'orderby' => 'name',
+                    ));
+
+                    $current_tag = isset($_GET['person_tag']) ? $_GET['person_tag'] : '';
+
+
+                    if (!empty($tags)) {
+                        echo '<ul class="tag-filter-list">';
+                        foreach ($tags as $tag) {
+                            $active_class = ($current_tag === $tag->slug) ? ' class="active-tag"' : '';
+
+                            echo '<li ' . $active_class . '><a href="' . esc_url(add_query_arg('person_tag', $tag->slug)) . '"><svg width="20" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M11.9999 13.1714L16.9497 8.22168L18.3639 9.63589L11.9999 15.9999L5.63599 9.63589L7.0502 8.22168L11.9999 13.1714Z"></path></svg>' . esc_html($tag->name) . '</a></li>';
+                        }
+                        echo '</ul>';
+                    }
+                    ?>
+
+                </div>
+                <div class="people-list">
             <div class="people-row">
                 <?php if ($wp_query->have_posts()):
                     while ($wp_query->have_posts()):
@@ -197,6 +272,8 @@ ob_start();
 
             wp_reset_postdata();
             ?>
+        </div>
+    </div>
         </div>
     </article>
 </div>
