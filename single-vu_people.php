@@ -31,12 +31,37 @@ ob_start();
         margin-top: 30px;
         font-size: 30px;
     }
+    .single-people-card{
+        max-width: 50%;
+        margin: auto;
+    }
+    .people-designations{
+        text-align: center;
+        display: block;
+    }
+    .people-title{
+        text-align: center;
+        font-size: 50px;
+        margin-bottom: 50px;
+    }
+    .people-meta{
+        margin-top: 50px;
+        margin-left: 0;
+        padding-left: 0;
+    }
+
+    @media(max-width: 980px){
+        .single-people-card{
+            max-width: 85%;
+            margin: auto;
+        }
+    }
 </style>
 
     <div class="panel panel-default col-sm-9">
         <div class="container">
             <article class="primary-content col-sm-12">
-                <div class="panel-body">
+                <div class="panel-body single-people-card">
 
                     <?php if (have_posts()) : while (have_posts()) : the_post(); ?>
                         <?php
@@ -46,15 +71,40 @@ ob_start();
 
                         <!-- information section 12-->
                         <div class="">
-                            <div class="pull-right" style="margin: 0 0 0 15px;">
+                            <div class="pull-right">
+                                <span class="people-designations">
+                                     <?php if (have_rows('title_and_department')):
+                                        while (have_rows('title_and_department')): the_row();
+                                            if (get_sub_field('title__position')): ?>
+                                                <span class="people-title-position"><?php the_sub_field('title__position'); ?></span>
+                                                <?php if (get_sub_field('department__center__office')): ?>
+                                                    , <span class="people-title-department"><?php the_sub_field('department__center__office'); ?></span>
+                                                <?php endif; ?><br />
+                                                <?php break;
+                                            endif;
+                                        endwhile;
+                                    endif; ?>
+                                </span>
+                                <h1 class="people-title"><?php the_title(); ?></h1>
                                 <?php if (has_post_thumbnail()): ?>
-                                <?php the_post_thumbnail(array(300,300), array("class" => "media-object img-thumbnail")); ?>
+                                <?php 
+                                if (has_post_thumbnail()) {
+                                    $thumb_id = get_post_thumbnail_id(get_the_ID());
+                                    $thumb_caption = wp_get_attachment_caption($thumb_id);
+
+                                    echo '<figure>';
+                                    the_post_thumbnail([300, 300], ['class' => 'media-object img-thumbnail']);
+                                    if ($thumb_caption) {
+                                        echo '<figcaption>' . esc_html($thumb_caption) . '</figcaption>';
+                                    }
+                                    echo '</figure>';
+                                }   ?>
                                 <?php else: ?>
                                     <img class="media-object img-thumbnail" src="<?php echo plugins_url('images/default-person-pic.png', __FILE__); ?>" />
                                 <?php endif; ?>
                             </div>
                             <div class="lab-person-info">
-                                <h3 class="pagetitle"><?php the_title(); ?></h3>
+                                
                                 <p>
                                     <?php if(have_rows('title_and_department')): ?>
                                         <?php while(have_rows('title_and_department')):
@@ -95,9 +145,8 @@ ob_start();
                                         <?php endwhile; ?>
                                     <?php endif; ?>
                                 </p>
-                                <hr />
 
-                                <ul>
+                                <ul class="people-meta">
                                     <?php if(get_field('email')): ?>
                                         <li> <i class="fa fa-envelope" aria-hidden="true"></i> : <a href="mailto:<?php the_field('email'); ?>"> <?php the_field('email'); ?> </a></li>
                                     <?php endif; ?>
@@ -216,18 +265,17 @@ ob_start();
 
 
 
-                        <hr />
 
                         <?php if (get_theme_mod('socialsharelinks') == true) { ?>
                             <div class="addthis_sharing_toolbox"></div>
                         <?php } ?>
 
-                        <?php comments_template(); ?>
+                        <?php //comments_template(); ?>
 
 
                     <?php endwhile; else: ?>
 
-                        <p>Sorry, no posts matched your criteria.</p>
+                        <p>Sorry, no people matched your criteria.</p>
 
                     <?php endif; ?>
 
